@@ -1,0 +1,1 @@
+Info (10281): Verilog HDL Declaration information at top_subpixel_second.v(75): object "tempB" differs only in case from object "tempb" in the same scope File: E:/subpixel_verilog/subpixel1.0/design/top_subpixel_second.v Line: 75

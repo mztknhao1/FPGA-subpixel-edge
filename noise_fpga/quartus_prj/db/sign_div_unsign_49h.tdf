@@ -1,0 +1,102 @@
+--sign_div_unsign DEN_REPRESENTATION="SIGNED" DEN_WIDTH=32 LPM_PIPELINE=0 MAXIMIZE_SPEED=6 NUM_REPRESENTATION="SIGNED" NUM_WIDTH=32 SKIP_BITS=0 denominator numerator quotient remainder
+--VERSION_BEGIN 17.1 cbx_cycloneii 2017:10:25:18:06:53:SJ cbx_lpm_abs 2017:10:25:18:06:53:SJ cbx_lpm_add_sub 2017:10:25:18:06:53:SJ cbx_lpm_divide 2017:10:25:18:06:53:SJ cbx_mgl 2017:10:25:18:08:29:SJ cbx_nadder 2017:10:25:18:06:53:SJ cbx_stratix 2017:10:25:18:06:53:SJ cbx_stratixii 2017:10:25:18:06:53:SJ cbx_util_mgl 2017:10:25:18:06:53:SJ  VERSION_END
+
+
+-- Copyright (C) 2017  Intel Corporation. All rights reserved.
+--  Your use of Intel Corporation's design tools, logic functions 
+--  and other software and tools, and its AMPP partner logic 
+--  functions, and any output files from any of the foregoing 
+--  (including device programming or simulation files), and any 
+--  associated documentation or information are expressly subject 
+--  to the terms and conditions of the Intel Program License 
+--  Subscription Agreement, the Intel Quartus Prime License Agreement,
+--  the Intel FPGA IP License Agreement, or other applicable license
+--  agreement, including, without limitation, that your use is for
+--  the sole purpose of programming logic devices manufactured by
+--  Intel and sold by Intel or its authorized distributors.  Please
+--  refer to the applicable agreement for further details.
+
+
+FUNCTION alt_u_div_7af (denominator[31..0], numerator[31..0])
+RETURNS ( quotient[31..0], remainder[31..0]);
+
+--synthesis_resources = lut 652 
+SUBDESIGN sign_div_unsign_49h
+( 
+	denominator[31..0]	:	input;
+	numerator[31..0]	:	input;
+	quotient[31..0]	:	output;
+	remainder[31..0]	:	output;
+) 
+VARIABLE 
+	divider : alt_u_div_7af;
+	adder_result_int[32..0]	:	WIRE;
+	adder_cin	:	WIRE;
+	adder_dataa[31..0]	:	WIRE;
+	adder_datab[31..0]	:	WIRE;
+	adder_result[31..0]	:	WIRE;
+	compl_adder1_result_int[32..0]	:	WIRE;
+	compl_adder1_cin	:	WIRE;
+	compl_adder1_dataa[31..0]	:	WIRE;
+	compl_adder1_datab[31..0]	:	WIRE;
+	compl_adder1_result[31..0]	:	WIRE;
+	compl_adder_4_result_int[32..0]	:	WIRE;
+	compl_adder_4_cin	:	WIRE;
+	compl_adder_4_dataa[31..0]	:	WIRE;
+	compl_adder_4_datab[31..0]	:	WIRE;
+	compl_adder_4_result[31..0]	:	WIRE;
+	adder_out[31..0]	: WIRE;
+	den_choice[31..0]	: WIRE;
+	gnd_wire	: WIRE;
+	neg_num[31..0]	: WIRE;
+	neg_quot[31..0]	: WIRE;
+	norm_num[31..0]	: WIRE;
+	num_choice[31..0]	: WIRE;
+	pre_neg_den[31..0]	: WIRE;
+	pre_neg_quot[31..0]	: WIRE;
+	pre_quot[31..0]	: WIRE;
+	protect_quotient[31..0]	: WIRE;
+	protect_remainder[31..0]	: WIRE;
+	q_is_neg	: WIRE;
+	vcc_wire	: WIRE;
+	zero_wire[31..0]	: WIRE;
+	zero_wire_3w[31..0]	: WIRE;
+
+BEGIN 
+	divider.denominator[] = den_choice[];
+	divider.numerator[] = norm_num[];
+	adder_result_int[] = (adder_dataa[], 0) - (adder_datab[], !adder_cin);
+	adder_result[] = adder_result_int[32..1];
+	adder_cin = gnd_wire;
+	adder_dataa[] = den_choice[];
+	adder_datab[] = protect_remainder[];
+	compl_adder1_result_int[] = (compl_adder1_dataa[], compl_adder1_cin) + (compl_adder1_datab[], compl_adder1_cin);
+	compl_adder1_result[] = compl_adder1_result_int[32..1];
+	compl_adder1_cin = vcc_wire;
+	compl_adder1_dataa[] = (! denominator[]);
+	compl_adder1_datab[] = zero_wire[];
+	compl_adder_4_result_int[] = (compl_adder_4_dataa[], compl_adder_4_cin) + (compl_adder_4_datab[], compl_adder_4_cin);
+	compl_adder_4_result[] = compl_adder_4_result_int[32..1];
+	compl_adder_4_cin = vcc_wire;
+	compl_adder_4_dataa[] = (! pre_quot[]);
+	compl_adder_4_datab[] = zero_wire_3w[];
+	adder_out[] = adder_result[];
+	den_choice[] = ((denominator[] & (! denominator[31..31])) # (pre_neg_den[] & denominator[31..31]));
+	gnd_wire = B"0";
+	neg_num[] = (! num_choice[]);
+	neg_quot[] = (! protect_quotient[]);
+	norm_num[] = ((num_choice[] & (! num_choice[31..31])) # (neg_num[] & num_choice[31..31]));
+	num_choice[] = numerator[];
+	pre_neg_den[] = compl_adder1_result[];
+	pre_neg_quot[] = compl_adder_4_result[];
+	pre_quot[] = ((protect_quotient[] & (! num_choice[31..31])) # (neg_quot[] & num_choice[31..31]));
+	protect_quotient[] = divider.quotient[];
+	protect_remainder[] = divider.remainder[];
+	q_is_neg = denominator[31..31];
+	quotient[] = ((pre_quot[] & (! q_is_neg)) # (pre_neg_quot[] & q_is_neg));
+	remainder[] = ((protect_remainder[] & (! num_choice[31..31])) # (adder_out[] & num_choice[31..31]));
+	vcc_wire = B"1";
+	zero_wire[] = B"00000000000000000000000000000000";
+	zero_wire_3w[] = B"00000000000000000000000000000000";
+END;
+--VALID FILE

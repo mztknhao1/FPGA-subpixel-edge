@@ -1,0 +1,14 @@
+Analysis & Synthesis Status : Successful - Thu Apr 04 10:42:31 2019
+Quartus Prime Version : 17.1.0 Build 590 10/25/2017 SJ Lite Edition
+Revision Name : subpixel
+Top-level Entity Name : top_subpixel_second
+Family : Cyclone IV E
+Total logic elements : 11,055
+    Total combinational functions : 9,788
+    Dedicated logic registers : 2,473
+Total registers : 2473
+Total pins : 115
+Total virtual pins : 0
+Total memory bits : 17,556
+Embedded Multiplier 9-bit elements : 0
+Total PLLs : 0
